@@ -91,6 +91,10 @@ def merge_with_mask(src_path, src_mask_path, src2_path):
     src1 = cv2.imread(src_path)
     src2 = cv2.imread(src2_path)
 
+    height, width, channels = src1.shape
+    dim = (width, height)
+    src2 = cv2.resize(src2, (width,height), interpolation = cv2.INTER_AREA)
+
     mask = cv2.imread(src_mask_path,cv2.IMREAD_GRAYSCALE)
     mask_inverted = cv2.bitwise_not(mask)
 
