@@ -23,20 +23,68 @@ def seamlessClone(src_path, src2_path):
     return normal_clone
 
 def calculate_points_from_mask(mask):
+    margin = 50
     #copy make border for contours close to the edges
-    expanded = cv2.copyMakeBorder(mask, 50, 50, 50, 50, cv2.BORDER_CONSTANT, None, value = 0) 
+    expanded = cv2.copyMakeBorder(mask, margin, margin, margin, margin, cv2.BORDER_CONSTANT, None, value = 0) 
     thresh = cv2.threshold(expanded, 0, 255,
         cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
     contours,hierarchy=cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-    rect = cv2.minAreaRect(contours[0])
-    points = get_points_from_minarearect(rect)
+    points = get_corner_points_of_contour(contours[0])
 
-    #remove the offset
+    #remove the margin
     for point in points:
-        point[0] = point[0] - 50
-        point[1] = point[1] - 50
+        point[0] = point[0] - margin
+        point[1] = point[1] - margin
+
     return points
-    
+
+def distance(p1, p2):
+    return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
+
+def get_corner_points_of_contour(contour):
+    points = []
+    rect = cv2.minAreaRect(contour)
+    center = rect[0]  # Center of the bounding rectangle
+
+    top_left_point = None
+    top_left_distance = 0
+
+    top_right_point = None
+    top_right_distance = 0
+
+    bottom_left_point = None
+    bottom_left_distance = 0
+
+    bottom_right_point = None
+    bottom_right_distance = 0
+
+    for i in range(0, len(contour), 1):
+        point = tuple(contour[i][0])  # Convert point to tuple (x, y)
+        dist = distance(point, center)
+
+        if point[0] < center[0] and point[1] < center[1]:
+            if dist > top_left_distance:
+                top_left_point = point
+                top_left_distance = dist
+        elif point[0] > center[0] and point[1] < center[1]:
+            if dist > top_right_distance:
+                top_right_point = point
+                top_right_distance = dist
+        elif point[0] < center[0] and point[1] > center[1]:
+            if dist > bottom_left_distance:
+                bottom_left_point = point
+                bottom_left_distance = dist
+        elif point[0] > center[0] and point[1] > center[1]:
+            if dist > bottom_right_distance:
+                bottom_right_point = point
+                bottom_right_distance = dist
+
+    points.append(top_left_point)
+    points.append(top_right_point)
+    points.append(bottom_right_point)
+    points.append(bottom_left_point)
+
+    return points
 
 def merge_with_mask(src_path, src_mask_path, src2_path):
     src1 = cv2.imread(src_path)
