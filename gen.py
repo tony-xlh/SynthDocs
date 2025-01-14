@@ -22,6 +22,22 @@ def seamlessClone(src_path, src2_path):
     #mixed_clone = cv2.seamlessClone(src1, src2, mask, center, cv2.MIXED_CLONE)
     return normal_clone
 
+def calculate_points_from_mask(mask):
+    #copy make border for contours close to the edges
+    expanded = cv2.copyMakeBorder(mask, 50, 50, 50, 50, cv2.BORDER_CONSTANT, None, value = 0) 
+    thresh = cv2.threshold(expanded, 0, 255,
+        cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    contours,hierarchy=cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    rect = cv2.minAreaRect(contours[0])
+    points = get_points_from_minarearect(rect)
+
+    #remove the offset
+    for point in points:
+        point[0] = point[0] - 50
+        point[1] = point[1] - 50
+    return points
+    
+
 def merge_with_mask(src_path, src_mask_path, src2_path):
     src1 = cv2.imread(src_path)
     src2 = cv2.imread(src2_path)
@@ -33,22 +49,10 @@ def merge_with_mask(src_path, src_mask_path, src2_path):
     src2_masked = cv2.bitwise_and(src2, src2, mask=mask_inverted)
 
     dst = cv2.addWeighted(src1_masked, 1.0, src2_masked, 1.0, 0.0)
-    
-    #copy make border for contours close to the edges
-    expanded = cv2.copyMakeBorder(mask, 10, 10, 10, 10, cv2.BORDER_CONSTANT, None, value = 0) 
 
-    thresh = cv2.threshold(expanded, 0, 255,
-        cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-    contours,hierarchy=cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-    rect = cv2.minAreaRect(contours[0])
-    points = get_points_from_minarearect(rect)
-
-    #remove the offset
-    for point in points:
-        point[0] = point[0] - 10
-        point[1] = point[1] - 10
-
-    return dst,box
+    points = calculate_points_from_mask(mask)
+   
+    return dst, points
 
 def merge_with_synthesized(synth_doc_path,background_path):
     cloned = seamlessClone(synth_doc_path,"./data/background/white-desktop.jpg")
