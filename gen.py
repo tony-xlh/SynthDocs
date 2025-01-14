@@ -1,6 +1,7 @@
 import cv2
 import os
 import numpy as np 
+import math
  
 def seamlessClone(src_path, src2_path):
     src1 = cv2.imread(src_path)
@@ -36,18 +37,36 @@ def merge_with_synthesized(synth_doc_path,background_path):
     cloned = seamlessClone(synth_doc_path,"./data/background/white-desktop.jpg")
     cv2.imwrite("cloned.jpg", cloned)
     background = cv2.imread(background_path)
+
+    cloned_height, cloned_width = cloned.shape[:2]
+    cloned_ratio = cloned_width/cloned_height
+
     height, width, channels = background.shape
-    margin_x =  int(width*0.1)
+
+    margin_x =  math.floor(width*0.1)
+
     scale_ratio = (width - margin_x * 2)/width
-    margin_y = int((height - height*scale_ratio)/2)
-    dim = (width - margin_x * 2, height - margin_y * 2)
+    resized_width = math.floor(width - margin_x * 2)
+    resized_height = math.floor(resized_width/cloned_ratio)
+
+    margin_y = math.floor((height - resized_height)/2)
+
+    dim = (resized_width, resized_height)
 
     cloned = cv2.resize(cloned, dim, interpolation = cv2.INTER_AREA)
+
     mask = 255 * np.ones(cloned.shape, cloned.dtype)
     mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+    
     cloned = cv2.copyMakeBorder(cloned, margin_y, margin_y, margin_x, margin_x, cv2.BORDER_CONSTANT, None, value = 0) 
     mask = cv2.copyMakeBorder(mask, margin_y, margin_y, margin_x, margin_x, cv2.BORDER_CONSTANT, None, value = 0) 
+    
+    #keep the same size
+    cloned = cv2.resize(cloned, (width,height), interpolation = cv2.INTER_AREA)
+    mask = cv2.resize(mask, (width,height), interpolation = cv2.INTER_AREA)
+    
     mask_inverted = cv2.bitwise_not(mask)
+    
     background_masked = cv2.bitwise_and(background, background, mask=mask_inverted)
     dst = cv2.addWeighted(cloned, 1.0, background_masked, 1.0, 0.0)
     return dst
