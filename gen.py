@@ -41,10 +41,10 @@ def merge_with_mask(src_path, src_mask_path, src2_path):
         cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
     contours,hierarchy=cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     rect = cv2.minAreaRect(contours[0])
-    box = cv2.boxPoints(rect)
+    points = get_points_from_minarearect(rect)
 
     #remove the offset
-    for point in box:
+    for point in points:
         point[0] = point[0] - 10
         point[1] = point[1] - 10
 
@@ -84,14 +84,39 @@ def merge_with_synthesized(synth_doc_path,background_path):
     mask = np.ones(cloned.shape, cloned.dtype)
     contours,hierarchy=cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     rect = cv2.minAreaRect(contours[0])
-    box = cv2.boxPoints(rect)
+    points = get_points_from_minarearect(rect)
+
     mask = cv2.drawContours(mask,contours,-1,(255,255,255),-1)
     mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
     mask_inverted = cv2.bitwise_not(mask)
 
     background_masked = cv2.bitwise_and(background, background, mask=mask_inverted)
     dst = cv2.addWeighted(cloned, 1.0, background_masked, 1.0, 0.0)
-    return dst, box
+    return dst, points
+
+def get_points_from_minarearect(rect):
+    (center_x, center_y), (width, height), angle = rect
+
+    angle_rad = np.radians(angle)
+
+    dx = width / 2
+    dy = height / 2
+
+    corner_offsets = [
+        (-dx, -dy),
+        (dx, -dy),
+        (dx, dy),
+        (-dx, dy) 
+    ]
+
+    corners = []
+    for offset in corner_offsets:
+        x_rot = offset[0] * np.cos(angle_rad) - offset[1] * np.sin(angle_rad)
+        y_rot = offset[0] * np.sin(angle_rad) + offset[1] * np.cos(angle_rad)
+        corners.append((center_x + x_rot, center_y + y_rot))
+
+    corners = np.int0(corners)
+    return corners  
 
 def rotate_img(img,angle = 3):
     rows, cols = img.shape[:2]
