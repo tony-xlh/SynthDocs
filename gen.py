@@ -146,30 +146,6 @@ def merge_with_synthesized(synth_doc_path,background_path):
     dst = cv2.addWeighted(cloned, 1.0, background_masked, 1.0, 0.0)
     return dst, points
 
-def get_points_from_minarearect(rect):
-    (center_x, center_y), (width, height), angle = rect
-
-    angle_rad = np.radians(angle)
-
-    dx = width / 2
-    dy = height / 2
-
-    corner_offsets = [
-        (-dx, -dy),
-        (dx, -dy),
-        (dx, dy),
-        (-dx, dy) 
-    ]
-
-    corners = []
-    for offset in corner_offsets:
-        x_rot = offset[0] * np.cos(angle_rad) - offset[1] * np.sin(angle_rad)
-        y_rot = offset[0] * np.sin(angle_rad) + offset[1] * np.cos(angle_rad)
-        corners.append((center_x + x_rot, center_y + y_rot))
-
-    corners = np.int0(corners)
-    return corners  
-
 def rotate_img(img,angle = 3):
     rows, cols = img.shape[:2]
     center = (cols / 2, rows / 2)
