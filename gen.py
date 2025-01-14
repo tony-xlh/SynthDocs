@@ -135,8 +135,7 @@ def merge_with_synthesized(synth_doc_path,background_path):
         cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
     mask = np.ones(cloned.shape, cloned.dtype)
     contours,hierarchy=cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-    rect = cv2.minAreaRect(contours[0])
-    points = get_points_from_minarearect(rect)
+    points = get_corner_points_of_contour(contours[0])
 
     mask = cv2.drawContours(mask,contours,-1,(255,255,255),-1)
     mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
