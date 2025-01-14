@@ -4,6 +4,7 @@ import numpy as np
 import math
 from math import *
 import random
+import shutil
 
 def seamlessClone(src_path, src2_path):
     src1 = cv2.imread(src_path)
@@ -190,6 +191,10 @@ if __name__ == "__main__":
                 dst,box = merge_with_mask(src_path, src_mask_path, src2_path)
                 output_name = background_filename.split(".")[0] + "-" + filename
                 print(output_name)
-                write_annotation(box,outdir + "/" + output_name+".txt")
+                if os.path.exists("./data/doc/" + filename + ".txt"):
+                    print("use existing annotation")
+                    shutil.copyfile("./data/doc/" + filename + ".txt", outdir + "/" + output_name+".txt")
+                else:
+                    write_annotation(box,outdir + "/" + output_name+".txt")
                 cv2.imwrite(outdir + "/" + output_name, dst)
     
