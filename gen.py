@@ -16,7 +16,7 @@ def seamlessClone(src_path, src2_path):
 
     # The location of the center of the src in the dst
     center = (width // 2, height // 2)
-    print(center)
+
     # Seamlessly clone src into dst and put the results in output
     normal_clone = cv2.seamlessClone(src1, src2, mask, center, cv2.NORMAL_CLONE)
     #mixed_clone = cv2.seamlessClone(src1, src2, mask, center, cv2.MIXED_CLONE)
@@ -33,7 +33,22 @@ def merge_with_mask(src_path, src_mask_path, src2_path):
     src2_masked = cv2.bitwise_and(src2, src2, mask=mask_inverted)
 
     dst = cv2.addWeighted(src1_masked, 1.0, src2_masked, 1.0, 0.0)
-    return dst
+    
+    #copy make border for contours close to the edges
+    expanded = cv2.copyMakeBorder(mask, 10, 10, 10, 10, cv2.BORDER_CONSTANT, None, value = 0) 
+
+    thresh = cv2.threshold(expanded, 0, 255,
+        cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    contours,hierarchy=cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    rect = cv2.minAreaRect(contours[0])
+    box = cv2.boxPoints(rect)
+
+    #remove the offset
+    for point in box:
+        point[0] = point[0] - 10
+        point[1] = point[1] - 10
+
+    return dst,box
 
 def merge_with_synthesized(synth_doc_path,background_path):
     cloned = seamlessClone(synth_doc_path,"./data/background/white-desktop.jpg")
@@ -68,13 +83,15 @@ def merge_with_synthesized(synth_doc_path,background_path):
         cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
     mask = np.ones(cloned.shape, cloned.dtype)
     contours,hierarchy=cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    rect = cv2.minAreaRect(contours[0])
+    box = cv2.boxPoints(rect)
     mask = cv2.drawContours(mask,contours,-1,(255,255,255),-1)
     mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
     mask_inverted = cv2.bitwise_not(mask)
 
     background_masked = cv2.bitwise_and(background, background, mask=mask_inverted)
     dst = cv2.addWeighted(cloned, 1.0, background_masked, 1.0, 0.0)
-    return dst
+    return dst, box
 
 def rotate_img(img,angle = 3):
     rows, cols = img.shape[:2]
@@ -88,6 +105,14 @@ def rotate_img(img,angle = 3):
     dst = cv2.warpAffine(img, M, (width_new, height_new))
     return dst
 
+def write_annotation(box, output_path):
+    annotation = ""
+    for point in box:
+        annotation += str(point[0]) + "," + str(point[1]) + " "
+    annotation = annotation.strip()
+    with open(output_path, "w") as f:
+        f.write(annotation)
+
 if __name__ == "__main__":
     outdir = "./output"
     if os.path.exists("./output") == False:
@@ -97,10 +122,12 @@ if __name__ == "__main__":
         src_path = "./data/synthesized-doc/" + filename
         for background_filename in os.listdir("./data/background"):
             src2_path = "./data/background/" + background_filename
-            dst = merge_with_synthesized(src_path, src2_path)
+            dst,box = merge_with_synthesized(src_path, src2_path)
             output_name = background_filename.split(".")[0] + "-" + filename
             print(output_name)
+            write_annotation(box,outdir + "/" + output_name+".txt")
             cv2.imwrite(outdir + "/" + output_name, dst)
+
     #use photo taken
     for filename in os.listdir("./data/doc"):
         if filename.find("mask") == -1:
@@ -108,8 +135,9 @@ if __name__ == "__main__":
             src_mask_path = "./data/doc/" + filename.split(".")[0] + "-mask.png"
             for background_filename in os.listdir("./data/background"):
                 src2_path = "./data/background/" + background_filename
-                dst = merge_with_mask(src_path, src_mask_path, src2_path)
+                dst,box = merge_with_mask(src_path, src_mask_path, src2_path)
                 output_name = background_filename.split(".")[0] + "-" + filename
                 print(output_name)
+                write_annotation(box,outdir + "/" + output_name+".txt")
                 cv2.imwrite(outdir + "/" + output_name, dst)
     
