@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
     #use photo taken
     for filename in os.listdir("./data/doc"):
-        if filename.find("mask") == -1:
+        if filename.find("mask") == -1 and filename.find("txt") == -1:
             src_path = "./data/doc/" + filename
             src_mask_path = "./data/doc/" + filename.split(".")[0] + "-mask.png"
             for background_filename in os.listdir("./data/background"):
