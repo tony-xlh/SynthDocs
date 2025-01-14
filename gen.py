@@ -2,7 +2,9 @@ import cv2
 import os
 import numpy as np 
 import math
- 
+from math import *
+import random
+
 def seamlessClone(src_path, src2_path):
     src1 = cv2.imread(src_path)
     src2 = cv2.imread(src2_path)
@@ -35,7 +37,7 @@ def merge_with_mask(src_path, src_mask_path, src2_path):
 
 def merge_with_synthesized(synth_doc_path,background_path):
     cloned = seamlessClone(synth_doc_path,"./data/background/white-desktop.jpg")
-    cv2.imwrite("cloned.jpg", cloned)
+
     background = cv2.imread(background_path)
 
     cloned_height, cloned_width = cloned.shape[:2]
@@ -52,25 +54,39 @@ def merge_with_synthesized(synth_doc_path,background_path):
     margin_y = math.floor((height - resized_height)/2)
 
     dim = (resized_width, resized_height)
-
+    angle = random.uniform(-1,1)*10
+    cloned = rotate_img(cloned, angle)
     cloned = cv2.resize(cloned, dim, interpolation = cv2.INTER_AREA)
-
-    mask = 255 * np.ones(cloned.shape, cloned.dtype)
-    mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
     
     cloned = cv2.copyMakeBorder(cloned, margin_y, margin_y, margin_x, margin_x, cv2.BORDER_CONSTANT, None, value = 0) 
-    mask = cv2.copyMakeBorder(mask, margin_y, margin_y, margin_x, margin_x, cv2.BORDER_CONSTANT, None, value = 0) 
-    
     #keep the same size
     cloned = cv2.resize(cloned, (width,height), interpolation = cv2.INTER_AREA)
-    mask = cv2.resize(mask, (width,height), interpolation = cv2.INTER_AREA)
-    
+
+    mask = cv2.cvtColor(cloned, cv2.COLOR_BGR2GRAY)
+
+    thresh = cv2.threshold(mask, 0, 255,
+        cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    mask = np.ones(cloned.shape, cloned.dtype)
+    contours,hierarchy=cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    mask = cv2.drawContours(mask,contours,-1,(255,255,255),-1)
+    mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
     mask_inverted = cv2.bitwise_not(mask)
-    
+
     background_masked = cv2.bitwise_and(background, background, mask=mask_inverted)
     dst = cv2.addWeighted(cloned, 1.0, background_masked, 1.0, 0.0)
     return dst
-    
+
+def rotate_img(img,angle = 3):
+    rows, cols = img.shape[:2]
+    center = (cols / 2, rows / 2)
+    height_new = int(cols*fabs(sin(radians(angle)))+rows*fabs(cos(radians(angle))))
+    width_new = int(rows*fabs(sin(radians(angle)))+cols*fabs(cos(radians(angle))))
+    scale = 1.0
+    M = cv2.getRotationMatrix2D(center, angle, scale)
+    M[0,2] += (width_new-cols)/2  
+    M[1,2] += (height_new-rows)/2
+    dst = cv2.warpAffine(img, M, (width_new, height_new))
+    return dst
 
 if __name__ == "__main__":
     outdir = "./output"
