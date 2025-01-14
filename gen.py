@@ -59,7 +59,7 @@ def get_corner_points_of_contour(contour):
     bottom_right_distance = 0
 
     for i in range(0, len(contour), 1):
-        point = tuple(contour[i][0])  # Convert point to tuple (x, y)
+        point = contour[i][0]
         dist = distance(point, center)
 
         if point[0] < center[0] and point[1] < center[1]:
