@@ -58,7 +58,7 @@ The document content and the background can affect the final document detection 
       
        ![src2](https://github.com/user-attachments/assets/5daf72d5-89d1-41ff-abd1-8d4eeeb476a0)
 
-   3. Rotate the image with a random degree.
+   3. Rotate the image with a random degree and add padding to make it match the background image.
   
       ![cloned](https://github.com/user-attachments/assets/356e94c5-6114-4ba6-972e-4b723949f39c)
 
