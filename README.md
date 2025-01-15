@@ -22,6 +22,8 @@ The document content and the background can affect the final document detection 
    
     ![mask](https://github.com/user-attachments/assets/4aae94ec-e64d-45bc-9f7f-488bd14c1f19)
 
+    Here are the steps:
+   
     1. Create an image containing the document using OpenCV's `bitwise_and` method and the mask image.
   
        ![src1_mask](https://github.com/user-attachments/assets/3afb6054-3371-472d-8dd5-23e4f02ce059)
@@ -36,12 +38,13 @@ The document content and the background can affect the final document detection 
 
 
     
-2. Blend a document image which covers 100% of the image and a background image.
+3. Blend a document image which covers 100% of the image and a background image.
 
-   We have the following images to blend:
+   We have the following image to blend:
 
    ![src1](https://github.com/user-attachments/assets/704b3c0d-9feb-42ff-aecc-13f2eb941652)
 
+   Here are the steps:
 
    1. Use OpenCV's `seamlessClone` method and a plain background image to make the doc like a photo taken in real scene.
   
