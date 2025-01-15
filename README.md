@@ -6,6 +6,8 @@ It can blend documents with different background to create new document images.
 
 It uses two kinds of document images. One is taken in real scene. The other is pure document images from dataset like [DocBank](https://github.com/doc-analysis/DocBank).
 
+You can find the generated dataset here: https://github.com/tony-xlh/SynthDocs/releases/tag/dataset
+
 ## How the Data is Collected
 
 The document content and the background can affect the final document detection result. So we've taken photos of different types of documents (receipt, ID card and A4 document) on background with different patterns and colors.
