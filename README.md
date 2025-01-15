@@ -48,17 +48,19 @@ The document content and the background can affect the final document detection 
 
    1. Use OpenCV's `seamlessClone` method and a plain background image to make the doc like a photo taken in real scene.
   
+       Result:
       
        ![normal_clone](https://github.com/user-attachments/assets/aba7bbef-eb7e-4f5a-9269-308c838cd617)
 
-
+       Background image:
+      
        ![src2](https://github.com/user-attachments/assets/5daf72d5-89d1-41ff-abd1-8d4eeeb476a0)
 
-   2. Rotate the image with a random degree.
+   3. Rotate the image with a random degree.
   
       ![cloned](https://github.com/user-attachments/assets/356e94c5-6114-4ba6-972e-4b723949f39c)
 
-   3. Do the similar steps for the previous document image type to blend the two images togeter.
+   4. Do the similar steps for the previous document image type to blend the two images togeter.
   
       Result:
 
