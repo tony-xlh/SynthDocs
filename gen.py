@@ -11,7 +11,7 @@ def seamlessClone(src_path, src2_path):
     src2 = cv2.imread(src2_path)
     height, width, channels = src1.shape
     dim = (width, height)
-    src2 = cv2.resize(src2, dim, interpolation = cv2.INTER_AREA)
+    src2 = cv2.resize(src2, dim, interpolation = cv2.INTER_NEAREST)
     # Create an all white mask
     mask = 255 * np.ones(src1.shape, src1.dtype)
 
@@ -93,7 +93,7 @@ def merge_with_mask(src_path, src_mask_path, src2_path):
 
     height, width, channels = src1.shape
     dim = (width, height)
-    src2 = cv2.resize(src2, (width,height), interpolation = cv2.INTER_AREA)
+    src2 = cv2.resize(src2, (width,height), interpolation = cv2.INTER_NEAREST)
 
     mask = cv2.imread(src_mask_path,cv2.IMREAD_GRAYSCALE)
     mask_inverted = cv2.bitwise_not(mask)
@@ -128,11 +128,11 @@ def merge_with_synthesized(synth_doc_path,background_path):
     dim = (resized_width, resized_height)
     angle = random.uniform(-1,1)*10
     cloned = rotate_img(cloned, angle)
-    cloned = cv2.resize(cloned, dim, interpolation = cv2.INTER_AREA)
+    cloned = cv2.resize(cloned, dim, interpolation = cv2.INTER_NEAREST)
     
     cloned = cv2.copyMakeBorder(cloned, margin_y, margin_y, margin_x, margin_x, cv2.BORDER_CONSTANT, None, value = 0) 
     #keep the same size
-    cloned = cv2.resize(cloned, (width,height), interpolation = cv2.INTER_AREA)
+    cloned = cv2.resize(cloned, (width,height), interpolation = cv2.INTER_NEAREST)
 
     mask = cv2.cvtColor(cloned, cv2.COLOR_BGR2GRAY)
 
@@ -159,7 +159,7 @@ def rotate_img(img,angle = 3):
     M = cv2.getRotationMatrix2D(center, angle, scale)
     M[0,2] += (width_new-cols)/2  
     M[1,2] += (height_new-rows)/2
-    dst = cv2.warpAffine(img, M, (width_new, height_new))
+    dst = cv2.warpAffine(img, M, (width_new, height_new),cv2.INTER_NEAREST)
     return dst
 
 def write_annotation(box, output_path):
