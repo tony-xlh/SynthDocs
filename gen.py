@@ -180,7 +180,7 @@ if __name__ == "__main__":
         for background_filename in os.listdir("./data/background"):
             src2_path = "./data/background/" + background_filename
             dst,box = merge_with_synthesized(src_path, src2_path)
-            output_name = background_filename.split(".")[0] + "-" + filename
+            output_name = background_filename.split(".")[0] + "--" + filename
             print(output_name)
             write_annotation(box,outdir + "/" + output_name+".txt")
             cv2.imwrite(outdir + "/" + output_name, dst)
@@ -193,7 +193,7 @@ if __name__ == "__main__":
             for background_filename in os.listdir("./data/background"):
                 src2_path = "./data/background/" + background_filename
                 dst,box = merge_with_mask(src_path, src_mask_path, src2_path)
-                output_name = background_filename.split(".")[0] + "-" + filename
+                output_name = background_filename.split(".")[0] + "--" + filename
                 print(output_name)
                 if os.path.exists("./data/doc/" + filename + ".txt"):
                     print("use existing annotation")
